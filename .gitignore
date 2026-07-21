@@ -12,6 +12,7 @@ venv/
 
 # Data
 data/
+!data/output/llm
 
 # Models
 models/

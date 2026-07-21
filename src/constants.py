@@ -12,14 +12,23 @@ class Column:
     RATING = "rating"
     LABEL = "label"
 
-    REVIEW_LENGTH = "review_length"
-    SENTENCE_COUNT = "sentence_count"
-    CHARACTER_COUNT = "character_count"
+    WORD_COUNT = "word_count"
+    CHAR_COUNT = "char_count"
     READABILITY_ARI = "readability_ari"
     EXTREMITY = "extremity"
 
+    SUBJECTIVE_CLAIM_COUNT = "subjective_claim_count"
+    OBJECTIVE_CLAIM_COUNT = "objective_claim_count"
+    EXPERIENTIAL_DETAIL_CLAIM_COUNT = "experiential_detail_claim_count"
+    POSITIVE_AFFECT_CLAIM_COUNT = "positive_affect_claim_count"
+    NEGATIVE_AFFECT_CLAIM_COUNT = "negative_affect_claim_count"
+    UNCERTAIN_CLAIM_COUNT = "uncertain_claim_count"
+    TEXT_SENTIMENT = "text_sentiment"
     SUBJECTIVITY = "subjectivity"
-    READABILITY_LLM = "readability_llm"
+    EXPERIENTIAL_DETAIL = "experiential_detail"
+    POSITIVE_AFFECT = "positive_affect"
+    NEGATIVE_AFFECT = "negative_affect"
+    UNCERTAINTY = "uncertainty"
     INTERNAL_CONSISTENCY = "internal_consistency"
 
     ADJECTIVE_COUNT = "adjective_count"
@@ -31,24 +40,28 @@ class Column:
     SUPERLATIVE_RATIO = "superlative_ratio"
 
     FIRST_PERSON_PRONOUN_COUNT = "first_person_pronoun_count"
-    SECOND_PERSON_PRONOUN_COUNT = "second_person_pronoun_count"
     THIRD_PERSON_PRONOUN_COUNT = "third_person_pronoun_count"
-
     FIRST_PERSON_PRONOUN_RATIO = "first_person_pronoun_ratio"
-    SECOND_PERSON_PRONOUN_RATIO = "second_person_pronoun_ratio"
     THIRD_PERSON_PRONOUN_RATIO = "third_person_pronoun_ratio"
 
 
 MODEL_FEATURE_COLUMNS = [
-    Column.REVIEW_LENGTH,
-    Column.SUBJECTIVITY,
     Column.READABILITY_ARI,
     Column.EXTREMITY,
+
+    #LLM
+    Column.SUBJECTIVITY,
+    Column.EXPERIENTIAL_DETAIL,
+    Column.POSITIVE_AFFECT,
+    Column.NEGATIVE_AFFECT,
+    Column.UNCERTAINTY,
     Column.INTERNAL_CONSISTENCY,
+
+    #Spacy
+    Column.WORD_COUNT,
     Column.ADJECTIVE_RATIO,
     Column.VERB_RATIO,
     Column.SUPERLATIVE_RATIO,
     Column.FIRST_PERSON_PRONOUN_RATIO,
-    Column.SECOND_PERSON_PRONOUN_RATIO,
     Column.THIRD_PERSON_PRONOUN_RATIO,
 ]
