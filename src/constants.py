@@ -13,7 +13,6 @@ class Column:
     LABEL = "label"
 
     WORD_COUNT = "word_count"
-    CHAR_COUNT = "char_count"
     READABILITY_ARI = "readability_ari"
     EXTREMITY = "extremity"
 
@@ -30,6 +29,15 @@ class Column:
     NEGATIVE_AFFECT = "negative_affect"
     UNCERTAINTY = "uncertainty"
     INTERNAL_CONSISTENCY = "internal_consistency"
+
+    CLAIMS_PER_100_WORDS = "claims_per_100_words"
+    AFFECT_TOTAL = "affect_total"
+    AFFECT_BALANCE = "affect_balance"
+    AFFECT_POLARIZATION = "affect_polarization"
+    SIGNED_SENTIMENT_DIFFERENCE = "signed_sentiment_difference"
+    SUBJECTIVITY_EXTREMENESS = "subjectivity_extremeness"
+    EXPERIENTIAL_CERTAINTY = "experiential_certainty"
+    LOG_WORD_COUNT = "log_word_count"
 
     ADJECTIVE_COUNT = "adjective_count"
     VERB_COUNT = "verb_count"
@@ -64,4 +72,18 @@ MODEL_FEATURE_COLUMNS = [
     Column.SUPERLATIVE_RATIO,
     Column.FIRST_PERSON_PRONOUN_RATIO,
     Column.THIRD_PERSON_PRONOUN_RATIO,
+]
+
+
+# Ausschließlich aus bestehenden Spalten abgeleitete Variablen. Sie bleiben
+# getrennt von der Baseline, damit Notebook 05 beide Varianten fair vergleicht.
+ENGINEERED_FEATURE_COLUMNS = [
+    Column.CLAIMS_PER_100_WORDS,
+    Column.AFFECT_TOTAL,
+    Column.AFFECT_BALANCE,
+    Column.AFFECT_POLARIZATION,
+    Column.SIGNED_SENTIMENT_DIFFERENCE,
+    Column.SUBJECTIVITY_EXTREMENESS,
+    Column.EXPERIENTIAL_CERTAINTY,
+    Column.LOG_WORD_COUNT,
 ]

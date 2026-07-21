@@ -10,10 +10,6 @@ venv/
 # Jupyter
 .ipynb_checkpoints/
 
-# Data
-data/
-!data/output/llm
-
 # Models
 models/
 
