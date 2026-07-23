@@ -1,16 +1,23 @@
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DOWNLOAD_DIR = PROJECT_ROOT / "data" / "download"
 INPUT_DIR = PROJECT_ROOT / "data" / "input"
+TEMP_DIR = PROJECT_ROOT / "data" / "temp"
 OUTPUT_DIR = PROJECT_ROOT / "data" / "output"
 
 
 class Column:
     ID = "id"
     CATEGORY = "category"
+    ASIN = "asin"
+    PRODUCT = "product"
+    PRICE = "price"
+    TITLE = "title"
     TEXT = "text_"
     RATING = "rating"
     LABEL = "label"
+    SPLIT = "split"
 
     WORD_COUNT = "word_count"
     READABILITY_ARI = "readability_ari"
@@ -22,12 +29,14 @@ class Column:
     POSITIVE_AFFECT_CLAIM_COUNT = "positive_affect_claim_count"
     NEGATIVE_AFFECT_CLAIM_COUNT = "negative_affect_claim_count"
     UNCERTAIN_CLAIM_COUNT = "uncertain_claim_count"
+    CATEGORY_SPECIFIC_CLAIM_COUNT = "category_specific_claim_count"
     TEXT_SENTIMENT = "text_sentiment"
     SUBJECTIVITY = "subjectivity"
     EXPERIENTIAL_DETAIL = "experiential_detail"
     POSITIVE_AFFECT = "positive_affect"
     NEGATIVE_AFFECT = "negative_affect"
     UNCERTAINTY = "uncertainty"
+    CATEGORY_SPECIFICITY = "category_specificity"
     INTERNAL_CONSISTENCY = "internal_consistency"
 
     CLAIMS_PER_100_WORDS = "claims_per_100_words"
@@ -63,6 +72,7 @@ MODEL_FEATURE_COLUMNS = [
     Column.POSITIVE_AFFECT,
     Column.NEGATIVE_AFFECT,
     Column.UNCERTAINTY,
+    Column.CATEGORY_SPECIFICITY,
     Column.INTERNAL_CONSISTENCY,
 
     #Spacy
