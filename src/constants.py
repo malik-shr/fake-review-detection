@@ -11,11 +11,18 @@ class Column:
     ID = "id"
     CATEGORY = "category"
     ASIN = "asin"
+    PARENT_ASIN = "parent_asin"
     PRODUCT = "product"
     PRICE = "price"
+    AVERAGE_RATING = "average_rating"
+    RATING_NUMBER = "rating_number"
     TITLE = "title"
     TEXT = "text_"
     RATING = "rating"
+    USER_ID = "user_id"
+    TIMESTAMP = "timestamp"
+    HELPFUL_VOTE = "helpful_vote"
+    VERIFIED_PURCHASE = "verified_purchase"
     LABEL = "label"
     SPLIT = "split"
 
@@ -62,6 +69,22 @@ class Column:
     THIRD_PERSON_PRONOUN_RATIO = "third_person_pronoun_ratio"
 
 
+# Rohe Metadaten aus den Rezensionsdaten. Keine Modell-Features, werden aber
+# im Sample-Output zur Nachvollziehbarkeit/Analyse mitgeführt.
+METADATA_COLUMNS = [
+    Column.ASIN,
+    Column.PARENT_ASIN,
+    Column.PRODUCT,
+    Column.PRICE,
+    Column.AVERAGE_RATING,
+    Column.RATING_NUMBER,
+    Column.RATING,
+    Column.TITLE,
+    Column.HELPFUL_VOTE,
+    Column.VERIFIED_PURCHASE,
+]
+
+
 MODEL_FEATURE_COLUMNS = [
     Column.READABILITY_ARI,
     Column.EXTREMITY,
@@ -82,18 +105,4 @@ MODEL_FEATURE_COLUMNS = [
     Column.SUPERLATIVE_RATIO,
     Column.FIRST_PERSON_PRONOUN_RATIO,
     Column.THIRD_PERSON_PRONOUN_RATIO,
-]
-
-
-# Ausschließlich aus bestehenden Spalten abgeleitete Variablen. Sie bleiben
-# getrennt von der Baseline, damit Notebook 05 beide Varianten fair vergleicht.
-ENGINEERED_FEATURE_COLUMNS = [
-    Column.CLAIMS_PER_100_WORDS,
-    Column.AFFECT_TOTAL,
-    Column.AFFECT_BALANCE,
-    Column.AFFECT_POLARIZATION,
-    Column.SIGNED_SENTIMENT_DIFFERENCE,
-    Column.SUBJECTIVITY_EXTREMENESS,
-    Column.EXPERIENTIAL_CERTAINTY,
-    Column.LOG_WORD_COUNT,
 ]
