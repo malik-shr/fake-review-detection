@@ -6,15 +6,15 @@ Empirical part of the bachelor's thesis **"Fake Reviews auf Online-Plattformen: 
 
 > This thesis examines the identification and characterisation of potential fake reviews using the example of PC monitors. Building on a literature review, linguistic, content-related and rating-related detection features are derived and operationalised for the empirical study. Selected content-related features are captured using a large language model. On a labelled dataset containing authentic and computer-generated reviews, logistic regression and a random forest are compared as classification methods. The random forest achieves the better classification performance, reaching a precision of 0.9412 and a recall of 0.4211 on the test set at the chosen decision threshold.
 >
-> The model is then applied to a random sample of 5,000 PC monitor reviews, of which 137 reviews — 2.74 % of the sample — are classified as potential fake reviews. Characterising the model's classifications reveals differences across several linguistic and content-related features. Among the additionally examined product and rating characteristics, differences emerge in particular for product price and verified-purchase status. For the remaining characteristics, no clear relationships are discernible. As the classification model was trained on computer-generated reviews, the identified reviews are to be understood as model-based assessments rather than as evidence of actual manipulation.
+> The model is then applied to a random sample of 5,000 PC monitor reviews. 137 reviews (2.74 % of the sample) are classified as potential fake reviews. The classifications show differences across several linguistic and content-related features. Among the additionally examined product and rating characteristics, differences are most notable for product price and verified-purchase status. For the remaining characteristics, no clear relationships can be observed. Since the classification model was trained on computer-generated reviews, the identified reviews should be read as model-based assessments, not as evidence of actual manipulation.
 
 _Translated from the German original; the authoritative wording is that of the thesis._
 
 ## Objective
 
-This project examines whether fake product reviews can be distinguished from authentic ones based on linguistic and content-related features — and then applies a model trained on labelled data to an unlabelled sample of real Amazon reviews for PC monitors, in order to describe the estimated share of suspicious reviews and how it relates to product and review characteristics (price, popularity, verified purchase, helpful votes, rating deviation).
+This project examines whether fake product reviews can be distinguished from authentic ones based on linguistic and content-related features. A model trained on labelled data is then applied to an unlabelled sample of real Amazon reviews for PC monitors to estimate the share of suspicious reviews and describe how it relates to product and review characteristics (price, popularity, verified purchase, helpful votes, rating deviation).
 
-The object of study is fake reviews in general. In the labelled dataset, however, the construct is **operationalised through computer-generated reviews** (`CG`), since these are the only fake reviews available with reliable labels. The scope of this operationalisation is discussed under [Notes and limitations](#notes-and-limitations).
+The object of study is fake reviews in general, but the labelled dataset **operationalises the construct through computer-generated reviews** (`CG`), since these are the only fake reviews available with reliable labels. The scope of this operationalisation is discussed under [Notes and limitations](#notes-and-limitations).
 
 The feature approach is two-tiered:
 
@@ -28,7 +28,7 @@ The LLM does **not** classify whether a review is fake. It only annotates lingui
 | Dataset                                                                 | Source                                                        | Use                                        |
 | ----------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------ |
 | [`Flowerly/modern-fake-reviews`](https://huggingface.co/datasets/Flowerly/modern-fake-reviews) (Hugging Face), category `Electronics_5` | Labelled: `OR` = authentic (0), `CG` = computer-generated (1) | Training, validation, test (3,986 reviews) |
-| [Amazon Reviews 2023](https://amazon-reviews-2023.github.io/) — `meta_Electronics.jsonl`, `Electronics.jsonl`     | Unlabelled real-world data                                    | Sample of 5,000 PC monitor reviews         |
+| [Amazon Reviews 2023](https://amazon-reviews-2023.github.io/), `meta_Electronics.jsonl` + `Electronics.jsonl`     | Unlabelled real-world data                                    | Sample of 5,000 PC monitor reviews         |
 
 Split of the labelled dataset (splits taken from the source):
 
@@ -65,13 +65,13 @@ data/
 
 The notebooks build on one another and are executed in numerical order.
 
-**01 — Preparation.** Loads the labelled dataset from Hugging Face, filters it to `Electronics_5` and maps the labels to 0/1 → `data/input/electronics_raw.csv`. In parallel, PC monitors are identified in the raw Amazon data, their reviews are extracted, and the sample is drawn → `data/input/sample_raw.csv`.
+**01: Preparation.** Loads the labelled dataset from Hugging Face, filters it to `Electronics_5` and maps the labels to 0/1 → `data/input/electronics_raw.csv`. In parallel, PC monitors are identified in the raw Amazon data, their reviews are extracted, and the sample is drawn → `data/input/sample_raw.csv`.
 
-**02 — Deterministic features.** Computes, per review, word count, verbs, adjectives, superlatives and first- and third-person pronouns using spaCy (`en_core_web_sm`). Additionally the Automated Readability Index (ARI) and `extremity` (1 for a 1- or 5-star rating) → `basic_features.csv`.
+**02: Deterministic features.** Computes, per review, word count, verbs, adjectives, superlatives and first- and third-person pronouns using spaCy (`en_core_web_sm`). Also computes the Automated Readability Index (ARI) and `extremity` (1 for a 1- or 5-star rating) → `basic_features.csv`.
 
-**03 — LLM features.** Annotates each review with a locally hosted `qwen3:14B` via [Ollama](https://ollama.com), using `temperature=0` and schema-constrained JSON output (Pydantic). Counted are subjective, objective, experiential, positive- and negative-affect, uncertain and category-specific claims; text sentiment is additionally rated on a scale from −2 to +2 → `llm_features.csv`.
+**03: LLM features.** Annotates each review with a locally hosted `qwen3:14B` via [Ollama](https://ollama.com), using `temperature=0` and schema-constrained JSON output (Pydantic). Counted are subjective, objective, experiential, positive- and negative-affect, uncertain and category-specific claims; text sentiment is also rated on a scale from −2 to +2 → `llm_features.csv`.
 
-**04 — Merging.** Joins both feature sets on `id` (`validate="one_to_one"`; a mismatch raises an error) and derives the model features:
+**04: Merging.** Joins both feature sets on `id` (`validate="one_to_one"`; a mismatch raises an error) and derives the model features:
 
 - Part-of-speech counts are divided by word count (ratios).
 - Claim counts are normalised by the total number of claims (subjective + objective) and clipped to [0, 1]; with zero claims, `subjectivity` is set to 0.5 and the remaining shares to 0.
@@ -79,7 +79,7 @@ The notebooks build on one another and are executed in numerical order.
 
 → `final.csv` (training data with `label`/`split`, sample with product metadata).
 
-**05 — Training and evaluation.** Compares logistic regression (with `StandardScaler`) and random forest via 5-fold stratified cross-validation on the training split. The random forest (500 trees, `max_features="sqrt"`, `min_samples_leaf=2`) is checked on the validation split with respect to the decision threshold (0.5 vs. 0.8) and finally evaluated on the test split at the chosen threshold of **0.8** (accuracy, precision, recall, F1, ROC-AUC, confusion matrix). The deliberately high threshold prioritises precision: for the subsequent extrapolation to real-world data, false positives are more costly than missed cases.
+**05: Training and evaluation.** Compares logistic regression (with `StandardScaler`) and random forest via 5-fold stratified cross-validation on the training split. The random forest (500 trees, `max_features="sqrt"`, `min_samples_leaf=2`) is checked on the validation split for two decision thresholds (0.5 vs. 0.8) and then evaluated on the test split at the chosen threshold of **0.8** (accuracy, precision, recall, F1, ROC-AUC, confusion matrix). The high threshold prioritises precision because, when extrapolating to real-world data, false positives are more costly than missed cases.
 
 The model is then applied to the 5,000 PC monitor reviews. The analysis covers feature importances, the share of reviews classified as fake, and how that share is distributed across price quartiles, popularity quartiles (number of product ratings), verified purchases, helpful votes, and the deviation of the individual rating from the product average.
 
@@ -116,7 +116,7 @@ The values below are those of the stored run of notebook `05` and are subject to
 | Logistic regression | 0.7598 | 0.7490 | 0.7820 | 0.7649 | 0.8260 |
 | Random forest | 0.8122 | 0.8053 | 0.8239 | 0.8144 | 0.9010 |
 
-The random forest outperforms logistic regression on every metric and is carried forward.
+The random forest outperforms logistic regression on every metric and is used going forward.
 
 **Threshold selection** (random forest on the validation split, ROC-AUC 0.9072):
 
@@ -131,7 +131,7 @@ The random forest outperforms logistic regression on every metric and is carried
 | --- | --- | --- | --- | --- |
 | 0.7035 | 0.9412 | 0.4211 | 0.5818 | 0.8896 |
 
-The threshold trades recall for precision as intended: at 0.8 the model identifies well under half of the fake reviews, but the cases it does flag are correct in roughly 94 % of instances. In absolute terms, of the 543 test reviews it flags 119 as fake, of which 112 are correct (7 false positives), while 154 fake reviews go undetected:
+As expected, the 0.8 threshold sacrifices recall for precision: the model catches less than half of the fake reviews, but 94 % of the ones it does flag are correct. Out of 543 test reviews, 119 are flagged as fake, 112 of those correctly (7 false positives); 154 fake reviews go undetected:
 
 ![Confusion matrix on the test split](data/results/confusion_matrix.png)
 
@@ -139,7 +139,7 @@ The threshold trades recall for precision as intended: at 0.8 the model identifi
 
 ![Feature importances](data/results/feature_importance.png)
 
-Review length (`word_count`, 0.182) and readability (`readability_ari`, 0.172) carry the most weight, followed by the adjective ratio (0.120). The eight deterministic and spaCy-based features together account for roughly 0.71 of the total importance, the seven LLM-based features for roughly 0.29 — with `internal_consistency` (0.074) and `experiential_detail` (0.066) as the strongest among them.
+Review length (`word_count`, 0.182) and readability (`readability_ari`, 0.172) are the most important features, followed by the adjective ratio (0.120). The eight deterministic and spaCy-based features together make up about 0.71 of the total importance, the seven LLM-based features about 0.29. Among the LLM features, `internal_consistency` (0.074) and `experiential_detail` (0.066) contribute the most.
 
 **Application to PC monitors.** Of the 5,000 sampled reviews, **137 (2.74 %)** are classified as fake at the 0.8 threshold. Comparison of the most important model features between the two groups:
 
@@ -153,7 +153,7 @@ Review length (`word_count`, 0.182) and readability (`readability_ari`, 0.172) c
 
 > **Note:** Table 4 of the submitted thesis lists the two mean values of each row in the opposite groups; the medians are unaffected, as are all other tables and figures. The values given here are the corrected ones.
 
-Reviews classified as fake score higher in both mean and median on readability index, internal consistency, experiential detail and adjective ratio. Word count is the only one of these features whose two measures diverge: the flagged reviews have the higher median (49 vs. 36) but the lower mean (57.5 vs. 68.1), which points to individual very long reviews in the unflagged group pulling its mean upwards.
+Reviews classified as fake have higher mean and median values for readability index, internal consistency, experiential detail and adjective ratio. Word count is the exception: flagged reviews have a higher median (49 vs. 36) but a lower mean (57.5 vs. 68.1), likely because a few very long reviews in the unflagged group pull its mean up.
 
 Descriptive comparison of product and rating characteristics that were not part of the model:
 
@@ -168,7 +168,7 @@ Descriptive comparison of product and rating characteristics that were not part 
 
 ![Share of reviews classified as fake per price quartile](data/results/price_quartils.png)
 
-Across price quartiles the flagged share ranges from 2.20 % (Q2) to 3.55 % (Q4, the most expensive products); across popularity quartiles from 2.16 % to 3.37 %, without a monotonic trend. The price quartiles cover only the 3,067 reviews whose product has a price in the metadata. Given the low absolute number of flagged reviews, these subgroup differences rest on small counts and should be interpreted with corresponding caution.
+Across price quartiles the flagged share ranges from 2.20 % (Q2) to 3.55 % (Q4, the most expensive products); across popularity quartiles from 2.16 % to 3.37 %, with no monotonic trend. The price quartiles cover only the 3,067 reviews whose product has a price in the metadata. Because the absolute number of flagged reviews is low, these subgroup differences rest on small counts and should be interpreted cautiously.
 
 ## Setup
 
@@ -205,7 +205,7 @@ Across platforms, however, this guarantee does not hold in full. Even with ident
 | SciPy | 1.18.0 |
 | scikit-learn | 1.9.0 |
 
-The platforms nevertheless rely on different numerical backends and build toolchains — Apple Accelerate compiled with Clang on macOS ARM64, and the Windows/x86-64 build compiled with MSVC. Such differences in floating-point computation can lead to marginally different results in machine learning procedures despite a fixed random seed. A fixed `random_state` thus ensures reproducibility within one environment, but is not a guarantee of bit-for-bit identical results across hardware architectures and numerical backends.
+The platforms rely on different numerical backends and build toolchains (Apple Accelerate compiled with Clang on macOS ARM64 vs. the Windows/x86-64 build compiled with MSVC). These differences in floating-point computation can cause slightly different results in machine learning procedures even with a fixed random seed. A fixed `random_state` therefore ensures reproducibility within one environment, but does not guarantee bit-for-bit identical results across hardware architectures and numerical backends.
 
 The final model metrics reported in the thesis were therefore produced in a defined reference environment:
 
@@ -216,8 +216,8 @@ The final model metrics reported in the thesis were therefore produced in a defi
 ## Notes and limitations
 
 - **Domain shift:** Training uses labelled reviews from the _Electronics_ category, while the application targets PC monitors. The test metrics hold for the training domain and do not transfer directly to the sample.
-- **No ground truth in the sample:** The PC monitor reviews are unlabelled. "Classified as fake" is a model prediction, not a confirmed property of the review; the reported shares should accordingly be read as estimates carrying the model's error profile.
-- **Operationalisation:** The construct under study is fake reviews in general, but the labels operationalise it as computer-generated text (`CG`). The model therefore learns the characteristics of generated reviews; transferring the results to other forms of fake reviews — in particular manually written but paid ones — is an assumption that the data cannot verify.
+- **No ground truth in the sample:** The PC monitor reviews are unlabelled. "Classified as fake" is a model prediction, not a confirmed property of the review. The reported shares should be read as estimates that carry the model's error profile.
+- **Operationalisation:** The construct under study is fake reviews in general, but the labels operationalise it as computer-generated text (`CG`). The model therefore learns the characteristics of generated reviews. Whether the results transfer to other forms of fake reviews, especially manually written but paid ones, is an assumption that the data cannot verify.
 
 ## How to cite
 
